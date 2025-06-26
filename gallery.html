@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive Full-Screen Picture Flow Gallery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+            height: 100vh;
+            overscroll-behavior-y: none;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            transition: all 0.5s ease;
+        }
+
+        header.scrolled {
+            background: rgba(0,0,0,0.9);
+            padding: 15px 30px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-dots {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: #fff;
+            transform: scale(1.3);
+        }
+
+        .gallery {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .gallery-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gallery-item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .gallery-item.active {
+            opacity: 1;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.2);
+            transition: transform 8s linear;
+        }
+
+        .gallery-item.active img {
+            transform: scale(1);
+        }
+
+        .content-overlay {
+            position: absolute;
+            bottom: 15%;
+            left: 10%;
+            max-width: 600px;
+            padding: 30px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            transform: translateY(50px);
+            opacity: 0;
+            transition: all 0.8s ease 0.3s;
+        }
+
+        .gallery-item.active .content-overlay {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .content-overlay h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .content-overlay p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .explore-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #fff;
+            color: #000;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .explore-btn:hover {
+            background: #3498db;
+            color: #fff;
+            transform: translateY(-3px);
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .mouse {
+            width: 25px;
+            height: 40px;
+            border: 2px solid rgba(255,255,255,0.7);
+            border-radius: 15px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .mouse-wheel {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            width: 4px;
+            height: 8px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 2px;
+            transform: translateX(-50%);
+            animation: scrollWheel 2s infinite;
+        }
+
+        @keyframes scrollWheel {
+            0% {
+                top: 5px;
+                opacity: 1;
+            }
+            100% {
+                top: 15px;
+                opacity: 0;
+            }
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            transition: all 0.5s ease;
+        }
+
+        footer.hidden {
+            transform: translateY(100%);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                padding: 20px;
+            }
+            
+            header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .content-overlay {
+                bottom: 20%;
+                left: 5%;
+                right: 5%;
+                max-width: none;
+                padding: 20px;
+            }
+            
+            .content-overlay h2 {
+                font-size: 1.8rem;
+            }
+            
+            .nav-dots {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gallery</h1>
+        <div class="nav-dots">
+            <div class="nav-dot active" data-index="0"></div>
+            <div class="nav-dot" data-index="1"></div>
+            <div class="nav-dot" data-index="2"></div>
+            <div class="nav-dot" data-index="3"></div>
+            <div class="nav-dot" data-index="4"></div>
+            <div class="nav-dot" data-index="5"></div>
+        </div>
+    </header>
+
+    <section class="gallery">
+        <div class="gallery-container">
+            <div class="gallery-item active">
+                <img src="https://wallpapercave.com/wp/wp5858303.jpg" alt="Pikachu landscape">
+                <div class="content-overlay">
+                    <h2>Pikachu Image</h2>
+                    <p> It is an Electric-Type, and in addition to being listed as a Mouse Pokémon, Pikachu is the mascot of the Pokémon franchise.</p>
+                    <a href="#" class="explore-btn">Explore More</a>
+                </div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1510784722466-f2aa9c52fff6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3840&q=80" alt="Ocean waves">
+                <div class="content-overlay">
+                    <h2>Ocean Rhythms</h2>
+                    <p>The eternal dance of water and light. Discover the power and tranquility of the world's oceans.</p>
+                    <a href="#" class="explore-btn">Explore More</a>
+                </div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3840&q=80" alt="Forest path">
+                <div class="content-overlay">
+                    <h2>Enchanted Forest</h2>
+                    <p>Nature's cathedral in vibrant green. Step into these magical woodlands that seem straight out of a fairy tale.</p>
+                    <a href="#" class="explore-btn">Explore More</a>
+                </div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3840&q=80" alt="Flower field">
+                <div class="content-overlay">
+                    <h2>Floral Symphony</h2>
+                    <p>A rainbow tapestry woven by nature. Immerse yourself in these breathtaking fields of color and fragrance.</p>
+                    <a href="#" class="explore-btn">Explore More</a>
+                </div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3840&q=80" alt="Misty mountains">
+                <div class="content-overlay">
+                    <h2>Mystic Peaks</h2>
+                    <p>Where fog and stone create magic. These mysterious landscapes will transport you to another world.</p>
+                    <a href="#" class="explore-btn">Explore More</a>
+                </div>
+            </div>
+            
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1490604001847-b712b0c2f967?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=3840&q=80" alt="City skyline">
+                <div class="content-overlay">
+                    <h2>Urban Majesty</h2>
+                    <p>The modern cathedrals of human achievement. Explore the architectural wonders of our cities.</p>
+                    <a href="#" class="explore-btn">Explore More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="scroll-indicator">
+        <div class="mouse">
+            <div class="mouse-wheel"></div>
+        </div>
+        <span>Scroll to Explore</span>
+    </div>
+
+   
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            const navDots = document.querySelectorAll('.nav-dot');
+            const header = document.querySelector('header');
+            const footer = document.querySelector('footer');
+            let currentIndex = 0;
+            let isScrolling = false;
+            let scrollTimeout;
+
+            // Initialize GSAP ScrollTrigger
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Set up scroll snapping
+            function setupScrollSnap() {
+                galleryItems.forEach((item, index) => {
+                    ScrollTrigger.create({
+                        trigger: item,
+                        start: "top top",
+                        end: "bottom top",
+                        onEnter: () => updateActiveItem(index),
+                        onEnterBack: () => updateActiveItem(index),
+                        markers: false
+                    });
+                });
+            }
+
+            // Update active item and navigation
+            function updateActiveItem(index) {
+                if (index === currentIndex || isScrolling) return;
+                
+                currentIndex = index;
+                
+                // Update gallery items
+                galleryItems.forEach((item, i) => {
+                    item.classList.toggle('active', i === index);
+                });
+                
+                // Update navigation dots
+                navDots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+            }
+
+            // Handle navigation dot clicks
+            navDots.forEach(dot => {
+                dot.addEventListener('click', function() {
+                    const targetIndex = parseInt(this.getAttribute('data-index'));
+                    scrollToItem(targetIndex);
+                });
+            });
+
+            // Scroll to specific item
+            function scrollToItem(index) {
+                if (isScrolling || index === currentIndex) return;
+                
+                isScrolling = true;
+                currentIndex = index;
+                
+                const targetItem = galleryItems[index];
+                const targetPosition = targetItem.offsetTop;
+                
+                gsap.to(window, {
+                    scrollTo: { y: targetPosition, autoKill: false },
+                    duration: 1.5,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        isScrolling = false;
+                        updateActiveItem(index);
+                    }
+                });
+                
+                // Update UI immediately
+                galleryItems.forEach((item, i) => {
+                    item.classList.toggle('active', i === index);
+                });
+                
+                navDots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+            }
+
+            // Handle mouse wheel for precise scrolling
+            let wheelTimeout;
+            window.addEventListener('wheel', function(e) {
+                clearTimeout(wheelTimeout);
+                wheelTimeout = setTimeout(() => {
+                    if (isScrolling) return;
+                    
+                    if (e.deltaY > 0 && currentIndex < galleryItems.length - 1) {
+                        scrollToItem(currentIndex + 1);
+                    } else if (e.deltaY < 0 && currentIndex > 0) {
+                        scrollToItem(currentIndex - 1);
+                    }
+                }, 100);
+            });
+
+            // Handle keyboard navigation
+            window.addEventListener('keydown', function(e) {
+                if (isScrolling) return;
+                
+                if (e.key === 'ArrowDown' && currentIndex < galleryItems.length - 1) {
+                    e.preventDefault();
+                    scrollToItem(currentIndex + 1);
+                } else if (e.key === 'ArrowUp' && currentIndex > 0) {
+                    e.preventDefault();
+                    scrollToItem(currentIndex - 1);
+                }
+            });
+
+            // Handle touch events for mobile
+            let touchStartY = 0;
+            document.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            document.addEventListener('touchend', function(e) {
+                if (isScrolling) return;
+                
+                const touchEndY = e.changedTouches[0].clientY;
+                const diff = touchStartY - touchEndY;
+                
+                if (diff > 50 && currentIndex < galleryItems.length - 1) {
+                    scrollToItem(currentIndex + 1);
+                } else if (diff < -50 && currentIndex > 0) {
+                    scrollToItem(currentIndex - 1);
+                }
+            }, { passive: true });
+
+            // Header and footer effects
+            window.addEventListener('scroll', function() {
+                clearTimeout(scrollTimeout);
+                
+                if (window.scrollY > 50) {
+                    header.classList.add('scrolled');
+                    footer.classList.add('hidden');
+                } else {
+                    header.classList.remove('scrolled');
+                    footer.classList.remove('hidden');
+                }
+                
+                scrollTimeout = setTimeout(() => {
+                    footer.classList.remove('hidden');
+                }, 2000);
+            });
+
+            // Initialize
+            setupScrollSnap();
+            
+            // Preload images for smoother transitions
+            window.onload = function() {
+                galleryItems.forEach(item => {
+                    const img = item.querySelector('img');
+                    if (img) {
+                        const src = img.getAttribute('src');
+                        const tempImg = new Image();
+                        tempImg.src = src;
+                    }
+                });
+            };
+        });
+    </script>
+</body>
+</html>

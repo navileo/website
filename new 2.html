@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Immersive Iceland Experience</title>
+    <meta name="description" content="A captivating video showcasing Iceland's black sand beaches with interactive tech specs">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap');
+        
+        :root {
+            --primary: #0A437A;
+            --secondary: #b55385;
+            --accent: #38bdf8;
+            --text-light: #f8fafc;
+            --text-dark: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--secondary);
+            color: var(--text-light);
+            cursor: none;
+            overflow-x: hidden;
+        }
+        
+        /* Header with animated gradient */
+        header {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary), #1a5a9a);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shine 3s infinite;
+        }
+        
+        header h1 {
+            margin: 0;
+            font-size: 2.8rem;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            animation: fadeInDown 1s ease-out;
+        }
+        
+        nav {
+            margin: 1.5rem 0;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+        
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+        
+        nav a:hover {
+            color: var(--accent);
+        }
+        
+        nav a:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+        
+        /* Main content container */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Video section with animated intro */
+        .video-intro {
+            text-align: center;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 1s ease-out 0.3s forwards;
+        }
+        
+        .video-intro h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            font-family: 'Cormorant Garamond', serif;
+            color: var(--text-light);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .video-intro h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.6s ease;
+        }
+        
+        .video-intro:hover h2::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+        
+        .video-intro p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+        
+        /* Video container with hover effect */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            margin: 0 auto 4rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: scale(0.98);
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+        
+        .video-container:hover {
+            transform: scale(1);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none !important;
+            cursor: none !important;
+        }
+        
+        /* Tech specs with animated cards */
+        .tech-specs {
+            margin-top: 4rem;
+            color: var(--text-light);
+        }
+        
+        .tech-specs h2 {
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-family: 'Cormorant Garamond', serif;
+            background: linear-gradient(90deg, var(--accent), #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.5s forwards;
+        }
+        
+        .spec-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: translateY(30px);
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+        
+        .spec-card.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .spec-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .spec-card h3::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 3px;
+        }
+        
+        .spec-card p, .spec-card ul {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+        
+        .spec-card ul {
+            padding-left: 20px;
+        }
+        
+        .spec-card li {
+            margin: 0.5rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .spec-card li::before {
+            content: '▹';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+        
+        .spec-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .spec-image:hover {
+            transform: scale(1.03);
+        }
+        
+        /* Floating action button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
+            cursor: pointer;
+            z-index: 100;
+            transform: scale(0);
+            animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 1.5s forwards;
+            transition: all 0.3s ease;
+        }
+        
+        .fab:hover {
+            transform: scale(1.1) !important;
+            box-shadow: 0 6px 25px rgba(56, 189, 248, 0.4);
+        }
+        
+        .fab i {
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        /* Custom cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease, width 0.3s ease, height 0.3s ease;
+        }
+        
+        .cursor-follower {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        
+        .cursor.active, .cursor-follower.active {
+            width: 60px;
+            height: 60px;
+            opacity: 0.5;
+        }
+        
+        /* Footer with wave effect */
+        footer {
+            text-align: center;
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+            background: var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" fill="%23b55385" opacity=".25"/><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" fill="%23b55385" opacity=".5"/><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="%23b55385"/></svg>');
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        
+        footer p {
+            margin: 0;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Animations */
+        @keyframes shine {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes scaleIn {
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            nav {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            
+            .video-intro h2 {
+                font-size: 1.8rem;
+            }
+            
+            .tech-specs h2 {
+                font-size: 1.8rem;
+            }
+            
+            .spec-card {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (pointer: coarse) {
+            body {
+                cursor: auto;
+            }
+            
+            .cursor, .cursor-follower {
+                display: none;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    
+    <!-- Floating Action Button -->
+    <div class="fab" id="fab">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+    
+      <header>
+        <h1>MacBook Pro</h1>
+		<nav style="float: right;">
+        <a href="C:\Users\navee\Desktop\Website\index.html">Back</a>
+    </nav>
+    <div style="clear: both;"></div>
+            </header>
+    
+    <div class="content">
+        <div class="video-intro">
+            <h2>MacBook Video</h2>
+            <p>Experience the mesmerizing beauty of MacBook Pro in this captivating video showcasing power and beauty.</p>
+        </div>
+        
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/JWGQlG2dse8?autoplay=1&mute=1&controls=0&loop=1&playlist=JWGQlG2dse8&disablekb=1&fs=0&modestbranding=1&iv_load_policy=3&rel=0" 
+                    title="Iceland Black Sand Beach Video" 
+                    frameborder="0" 
+                    allow="autoplay; fullscreen" 
+                    allowfullscreen
+                    style="pointer-events: none;"></iframe>
+        </div>
+        
+        <div class="tech-specs">
+            <h2>MacBook Pro Technical Specifications</h2>
+            
+            <div class="spec-card">
+                <h3>Finish</h3>
+                <ul>
+                    <li>Space Black</li>
+                    <li>Silver</li>
+                </ul>
+                 </div>
+            
+            <div class="spec-card">
+                <h3>Chip</h3>
+                <p><strong>Apple M3 Pro chip</strong></p>
+                <ul>
+                    <li>11-core CPU with 5 performance cores and 6 efficiency cores</li>
+                    <li>14-core GPU</li>
+                    <li>Hardware-accelerated ray tracing</li>
+                    <li>16-core Neural Engine</li>
+                    <li>150GB/s memory bandwidth</li>
+					<img src="https://www.apple.com/newsroom/images/2023/10/apple-unveils-new-macbook-pro-featuring-m3-chips/article/Apple-MacBook-Pro-M3-chip-series-3up-231030_big.jpg.large.jpg" 
+                     alt="MacBook Pro M3 Series" class="spec-image">
+                </ul>
+                <p><strong>Media Engine</strong></p>
+                <ul>
+                    <li>Hardware-accelerated H.264, HEVC, ProRes and ProRes RAW</li>
+                    <li>Video decode engine</li>
+                    <li>Video encode engine</li>
+                    <li>ProRes encode and decode engine</li>
+                    <li>AV1 decode</li>
+                </ul>
+            </div>
+            
+            <div class="spec-card">
+                <h3>Display</h3>
+                <p><strong>Liquid Retina XDR display</strong></p>
+                <ul>
+                    <li>14.2-inch (diagonal) display</li>
+                    <li>3024x1964 native resolution at 254 pixels per inch</li>
+                    <li>1,000,000:1 contrast ratio</li>
+                    <li>XDR brightness: 1,000 nits sustained, 1,600 nits peak</li>
+                    <li>ProMotion technology up to 120Hz</li>
+                </ul>
+                <img src="https://www.notebookcheck.net/fileadmin/Notebooks/Apple/MacBook_Pro_14_2023_M3/IMG_1048.JPG" 
+                     alt="MacBook Pro Display" class="spec-image">
+            </div>
+            
+            <div class="spec-card">
+                <h3>Performance</h3>
+                <p><strong>Apple M3 Max chip</strong></p>
+                <ul>
+                    <li>14-core CPU with 10 performance cores</li>
+                    <li>30-core GPU</li>
+                    <li>300GB/s memory bandwidth</li>
+                    <li>Configurable up to 128GB unified memory</li>
+                    <li>Up to 8TB SSD storage</li>
+                </ul>
+                <p><strong>Battery Life</strong></p>
+                <ul>
+                    <li>Up to 18 hours video playback</li>
+                    <li>Up to 12 hours wireless web</li>
+                    <li>Fast-charge capable</li>
+                </ul>
+            </div>
+            
+            <div class="spec-card">
+                <h3>Design</h3>
+                <img src="https://media.giphy.com/media/l3vRbqgK5udZevNE4/giphy.gif" 
+                     alt="MacBook Pro Design" class="spec-image">
+                <ul>
+                    <li>Height: 1.55 cm (0.61 inches)</li>
+                    <li>Width: 31.26 cm (12.31 inches)</li>
+                    <li>Depth: 22.12 cm (8.71 inches)</li>
+                    <li>Weight: 1.61 kg (3.5 pounds)</li>
+                    <li>Space Black or Silver finish</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Have a Bright Day</p>
+    </footer>
+    
+    <script>
+        // Custom Cursor
+        const cursor = document.querySelector('.cursor');
+        const cursorFollower = document.querySelector('.cursor-follower');
+        
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+            
+            // Follower with delay
+            setTimeout(() => {
+                cursorFollower.style.left = e.clientX + 'px';
+                cursorFollower.style.top = e.clientY + 'px';
+            }, 100);
+        });
+        
+        // Interactive elements that enlarge cursor (excluding video container)
+        const interactiveElements = document.querySelectorAll('a, button, .spec-card, .fab');
+        
+        interactiveElements.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.classList.add('active');
+                cursorFollower.classList.add('active');
+            });
+            
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('active');
+                cursorFollower.classList.remove('active');
+            });
+        });
+        
+        // Scroll to top button
+        const fab = document.getElementById('fab');
+        fab.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Show/hide fab based on scroll position
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                fab.style.display = 'flex';
+            } else {
+                fab.style.display = 'none';
+            }
+        });
+        
+        // Animate tech spec cards when they come into view
+        const specCards = document.querySelectorAll('.spec-card');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.1
+        });
+        
+        specCards.forEach(card => {
+            observer.observe(card);
+        });
+        
+        // Preload images for smoother experience
+        window.addEventListener('load', () => {
+            const images = document.querySelectorAll('.spec-image');
+            images.forEach(img => {
+                const src = img.getAttribute('src');
+                if (src) {
+                    new Image().src = src;
+                }
+            });
+        });
+        
+        // Prevent any interactions with the video container
+        document.querySelector('.video-container').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        });
+    </script>
+</body>
+</html>

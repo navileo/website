@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PS5 Custom Color Designer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #0f0f12;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #000000, #2a2a2a);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            border-bottom: 1px solid #333;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #0072ce, #00b2ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-weight: 300;
+            opacity: 0.8;
+            color: #aaa;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        @media (min-width: 992px) {
+            .container {
+                flex-direction: row;
+            }
+        }
+
+        .viewer-section {
+            flex: 2;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #333;
+            background: #1a1a1a;
+        }
+
+        @media (min-width: 992px) {
+            .viewer-section {
+                margin-right: 1.5rem;
+                margin-bottom: 0;
+            }
+        }
+
+        #model-container {
+            width: 100%;
+            height: 450px;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #333;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 1.2rem;
+            z-index: 10;
+            flex-direction: column;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border-top: 4px solid #0072ce;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .controls-section {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 12px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.4);
+            padding: 1.5rem;
+            border: 1px solid #333;
+        }
+
+        .control-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .control-group h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+        }
+
+        .control-group h3 svg {
+            margin-right: 8px;
+            fill: #0072ce;
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .color-picker label {
+            width: 100px;
+            font-weight: 500;
+            color: #aaa;
+        }
+
+        .color-input {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #333;
+            border-radius: 6px;
+            margin-right: 12px;
+            cursor: pointer;
+            background: #333;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #0072ce;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .preset-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 1.2rem;
+        }
+
+        .preset-color {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .preset-color:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0, 180, 255, 0.5);
+        }
+
+        .preset-color.active {
+            border-color: #0072ce;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(0, 180, 255, 0.7);
+        }
+
+        .model-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 2rem;
+        }
+
+        button {
+            padding: 0.9rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #0072ce, #00b2ff);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 114, 206, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 114, 206, 0.5);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button.secondary {
+            background: #333;
+            color: #ccc;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        button.secondary:hover {
+            background: #444;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        button svg {
+            margin-right: 8px;
+        }
+
+        .viewer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .viewer-controls button {
+            flex: none;
+            padding: 0.6rem;
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1.2rem;
+        }
+
+        .ps5-logo {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .ps5-logo img {
+            height: 30px;
+            filter: brightness(0) invert(1);
+            opacity: 0.8;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            border-top: 1px solid #222;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0072ce;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00b2ff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PS5 Custom Color Designer</h1>
+        <p class="subtitle">Personalize your PlayStation 5 with custom colors</p>
+    </header>
+
+    <div class="container">
+        <div class="viewer-section">
+            <div id="model-container">
+                <div class="loading-overlay">
+                    <div class="spinner"></div>
+                    <span>Loading PS5 3D Model...</span>
+                </div>
+            </div>
+            <div class="viewer-controls">
+                <button id="rotate-left" title="Rotate Left">↻</button>
+                <button id="reset-view" title="Reset View">⟲</button>
+                <button id="rotate-right" title="Rotate Right">↺</button>
+            </div>
+        </div>
+
+        <div class="controls-section">
+            <div class="ps5-logo">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/PlayStation_logo.svg/2560px-PlayStation_logo.svg.png" alt="PlayStation Logo">
+            </div>
+
+            <div class="control-group">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                        <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+                    </svg>
+                    Console Colors
+                </h3>
+                <div class="color-picker">
+                    <label for="main-color">Main Plates</label>
+                    <div class="color-input">
+                        <input type="color" id="main-color" value="#ffffff">
+                        <input type="range" id="main-lightness" min="0" max="100" value="85">
+                    </div>
+                </div>
+                <div class="color-picker">
+                    <label for="secondary-color">Black Core</label>
+                    <div class="color-input">
+                        <input type="color" id="secondary-color" value="#000000">
+                        <input type="range" id="secondary-lightness" min="0" max="100" value="15">
+                    </div>
+                </div>
+                <div class="color-picker">
+                    <label for="accent-color">Blue Accents</label>
+                    <div class="color-input">
+                        <input type="color" id="accent-color" value="#0072ce">
+                        <input type="range" id="accent-lightness" min="0" max="100" value="50">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                    </svg>
+                    Background Color
+                </h3>
+                <div class="color-picker">
+                    <label for="bg-color">Color</label>
+                    <div class="color-input">
+                        <input type="color" id="bg-color" value="#1a1a1a">
+                        <input type="range" id="bg-lightness" min="0" max="100" value="10">
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/>
+                    </svg>
+                    Popular Color Schemes
+                </h3>
+                <div class="preset-colors">
+                    <div class="preset-color" style="background: linear-gradient(135deg, #ffffff 50%, #000000 50%);" data-main="#ffffff" data-secondary="#000000" data-accent="#0072ce"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #000000 50%, #ffffff 50%);" data-main="#000000" data-secondary="#ffffff" data-accent="#ff0000"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #5d00ff 50%, #000000 50%);" data-main="#5d00ff" data-secondary="#000000" data-accent="#00ff88"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #ff0000 50%, #000000 50%);" data-main="#ff0000" data-secondary="#000000" data-accent="#ffffff"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #00b2ff 50%, #003366 50%);" data-main="#00b2ff" data-secondary="#003366" data-accent="#ffffff"></div>
+                    <div class="preset-color" style="background: linear-gradient(135deg, #00ff88 50%, #005533 50%);" data-main="#00ff88" data-secondary="#005533" data-accent="#000000"></div>
+                </div>
+            </div>
+
+            <div class="model-actions">
+                <button id="save-design" class="secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Save Design
+                </button>
+                <button id="share-design">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Share
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2023 PlayStation 5 Customizer | Not affiliated with Sony Interactive Entertainment</p>
+    </footer>
+
+    <!-- Three.js libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Scene setup
+            const container = document.getElementById('model-container');
+            const loadingOverlay = document.querySelector('.loading-overlay');
+            
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 8;
+            camera.position.y = 2;
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+            
+            // Lighting - PS5 style ambient lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
+            scene.add(ambientLight);
+            
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight1.position.set(1, 1, 1);
+            directionalLight1.castShadow = true;
+            scene.add(directionalLight1);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0x0072ce, 0.3);
+            directionalLight2.position.set(-1, -1, -1);
+            scene.add(directionalLight2);
+            
+            // Controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 5;
+            controls.maxDistance = 15;
+            controls.maxPolarAngle = Math.PI * 0.9;
+            
+            // Materials for PS5 parts
+            const materials = {
+                main: new THREE.MeshPhongMaterial({ 
+                    color: 0xffffff,
+                    specular: 0x111111,
+                    shininess: 30
+                }),
+                secondary: new THREE.MeshPhongMaterial({ 
+                    color: 0x000000,
+                    specular: 0x222222,
+                    shininess: 50
+                }),
+                accent: new THREE.MeshPhongMaterial({ 
+                    color: 0x0072ce,
+                    emissive: 0x003366,
+                    emissiveIntensity: 0.2,
+                    specular: 0x00a2ff,
+                    shininess: 100
+                })
+            };
+            
+            // Create simplified PS5 model
+            function createPS5Model() {
+                const ps5 = new THREE.Group();
+                
+                // Main white plates (curved design)
+                const plateGeometry = new THREE.BoxGeometry(4, 0.3, 1.2);
+                plateGeometry.translate(0, 0.15, 0);
+                
+                const leftPlate = new THREE.Mesh(plateGeometry, materials.main);
+                leftPlate.position.x = -0.6;
+                leftPlate.rotation.z = -0.2;
+                leftPlate.castShadow = true;
+                
+                const rightPlate = new THREE.Mesh(plateGeometry, materials.main);
+                rightPlate.position.x = 0.6;
+                rightPlate.rotation.z = 0.2;
+                rightPlate.castShadow = true;
+                
+                // Black core
+                const coreGeometry = new THREE.BoxGeometry(1.5, 4, 1.4);
+                const core = new THREE.Mesh(coreGeometry, materials.secondary);
+                core.castShadow = true;
+                core.receiveShadow = true;
+                
+                // Blue accent lights
+                const lightGeometry = new THREE.BoxGeometry(0.1, 3.8, 0.1);
+                const leftLight = new THREE.Mesh(lightGeometry, materials.accent);
+                leftLight.position.set(-0.75, 0, 0.7);
+                
+                const rightLight = new THREE.Mesh(lightGeometry, materials.accent);
+                rightLight.position.set(0.75, 0, 0.7);
+                
+                // Base stand
+                const standGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.2, 32);
+                standGeometry.rotateX(Math.PI / 2);
+                const stand = new THREE.Mesh(standGeometry, materials.secondary);
+                stand.position.y = -2;
+                stand.castShadow = true;
+                
+                // Add all parts to group
+                ps5.add(leftPlate);
+                ps5.add(rightPlate);
+                ps5.add(core);
+                ps5.add(leftLight);
+                ps5.add(rightLight);
+                ps5.add(stand);
+                
+                scene.add(ps5);
+                
+                // Hide loading overlay after a short delay
+                setTimeout(() => {
+                    loadingOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingOverlay.style.display = 'none';
+                    }, 300);
+                }, 1500);
+                
+                return ps5;
+            }
+            
+            const ps5Model = createPS5Model();
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            // Window resize handler
+            window.addEventListener('resize', function() {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+            
+            // Color controls
+            const mainColorInput = document.getElementById('main-color');
+            const mainLightnessInput = document.getElementById('main-lightness');
+            const secondaryColorInput = document.getElementById('secondary-color');
+            const secondaryLightnessInput = document.getElementById('secondary-lightness');
+            const accentColorInput = document.getElementById('accent-color');
+            const accentLightnessInput = document.getElementById('accent-lightness');
+            const bgColorInput = document.getElementById('bg-color');
+            const bgLightnessInput = document.getElementById('bg-lightness');
+            
+            function updateColor(element, materialType) {
+                const color = new THREE.Color(element.value);
+                const lightness = document.getElementById(`${materialType}-lightness`).value / 100;
+                
+                // Adjust lightness
+                if (materialType !== 'secondary' && materialType !== 'bg') {
+                    color.r = Math.min(color.r * (1 + (lightness - 0.5)), 1);
+                    color.g = Math.min(color.g * (1 + (lightness - 0.5)), 1);
+                    color.b = Math.min(color.b * (1 + (lightness - 0.5)), 1);
+                } else {
+                    // For black core and background, we want to keep it dark but allow some variation
+                    color.r = Math.min(color.r * (0.2 + lightness * 0.8), 1);
+                    color.g = Math.min(color.g * (0.2 + lightness * 0.8), 1);
+                    color.b = Math.min(color.b * (0.2 + lightness * 0.8), 1);
+                }
+                
+                if (materialType === 'bg') {
+                    scene.background = color;
+                    document.querySelector('.viewer-section').style.backgroundColor = `rgb(${Math.floor(color.r * 255)}, ${Math.floor(color.g * 255)}, ${Math.floor(color.b * 255)})`;
+                } else {
+                    materials[materialType].color.set(color);
+                }
+                
+                // Special treatment for accent lights
+                if (materialType === 'accent') {
+                    materials.accent.emissive.setHSL(
+                        color.getHSL().h,
+                        color.getHSL().s,
+                        color.getHSL().l * 0.7
+                    );
+                }
+            }
+            
+            mainColorInput.addEventListener('input', () => updateColor(mainColorInput, 'main'));
+            mainLightnessInput.addEventListener('input', () => updateColor(mainColorInput, 'main'));
+            secondaryColorInput.addEventListener('input', () => updateColor(secondaryColorInput, 'secondary'));
+            secondaryLightnessInput.addEventListener('input', () => updateColor(secondaryColorInput, 'secondary'));
+            accentColorInput.addEventListener('input', () => updateColor(accentColorInput, 'accent'));
+            accentLightnessInput.addEventListener('input', () => updateColor(accentColorInput, 'accent'));
+            bgColorInput.addEventListener('input', () => updateColor(bgColorInput, 'bg'));
+            bgLightnessInput.addEventListener('input', () => updateColor(bgColorInput, 'bg'));
+            
+            // Preset colors
+            const presetColors = document.querySelectorAll('.preset-color');
+            presetColors.forEach(preset => {
+                preset.addEventListener('click', function() {
+                    // Update active state
+                    presetColors.forEach(p => p.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Get colors from data attributes
+                    const mainColor = this.dataset.main;
+                    const secondaryColor = this.dataset.secondary;
+                    const accentColor = this.dataset.accent;
+                    
+                    // Update color inputs
+                    mainColorInput.value = mainColor;
+                    secondaryColorInput.value = secondaryColor;
+                    accentColorInput.value = accentColor;
+                    
+                    // Reset lightness to defaults
+                    mainLightnessInput.value = mainColor === '#000000' ? 15 : 85;
+                    secondaryLightnessInput.value = 15;
+                    accentLightnessInput.value = 50;
+                    
+                    // Update materials
+                    updateColor(mainColorInput, 'main');
+                    updateColor(secondaryColorInput, 'secondary');
+                    updateColor(accentColorInput, 'accent');
+                });
+            });
+            
+            // Set first preset as active by default
+            presetColors[0].classList.add('active');
+            
+            // Viewer controls
+            document.getElementById('rotate-left').addEventListener('click', function() {
+                gsap.to(ps5Model.rotation, { y: ps5Model.rotation.y + Math.PI/2, duration: 0.8, ease: "power2.inOut" });
+            });
+            
+            document.getElementById('reset-view').addEventListener('click', function() {
+                gsap.to(ps5Model.rotation, { 
+                    x: 0, 
+                    y: 0, 
+                    z: 0, 
+                    duration: 0.8, 
+                    ease: "power2.inOut" 
+                });
+                gsap.to(controls.target, { 
+                    x: 0, 
+                    y: 0, 
+                    z: 0, 
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                    onUpdate: () => controls.update()
+                });
+                gsap.to(camera.position, {
+                    x: 0,
+                    y: 2,
+                    z: 8,
+                    duration: 0.8,
+                    ease: "power2.inOut"
+                });
+            });
+            
+            document.getElementById('rotate-right').addEventListener('click', function() {
+                gsap.to(ps5Model.rotation, { y: ps5Model.rotation.y - Math.PI/2, duration: 0.8, ease: "power2.inOut" });
+            });
+            
+            // Action buttons
+            document.getElementById('save-design').addEventListener('click', function() {
+                // Create a screenshot
+                renderer.render(scene, camera);
+                const screenshot = renderer.domElement.toDataURL('image/png');
+                
+                // In a real app, you would send this to a server
+                const link = document.createElement('a');
+                link.href = screenshot;
+                link.download = 'ps5-custom-design.png';
+                link.click();
+            });
+            
+            document.getElementById('share-design').addEventListener('click', function() {
+                // In a real app, this would share to social media
+                alert('Share functionality would connect to social media APIs in a production app');
+            });
+        });
+    </script>
+</body>
+</html>
